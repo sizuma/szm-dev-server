@@ -1,0 +1,37 @@
+version: '2'
+
+services:
+  proxy:
+    build: proxy/
+    depends_on:
+      - crowi
+    links:
+      - crowi
+  crowi:
+    image: bakudankun/crowi:latest
+    links:
+      - crowi-mongo:db
+      - crowi-redis:redis
+      - crowi-elasticsearch:es
+    ports:
+      - 5000:3000
+    volumes:
+      - "~/szm-dev/wiki:/data"
+
+  crowi-mongo:
+    image: mongo
+
+  crowi-redis:
+    image: redis:alpine
+
+  crowi-elasticsearch:
+    image: elasticsearch:2
+    # プラグインのKuromojiが必要
+    entrypoint:
+      - bash
+      - -c
+      - >-
+        bin/plugin list | grep -q analysis-kuromoji
+        || bin/plugin install analysis-kuromoji
+        && exec /docker-entrypoint.sh $$0 $$@
+    command: elasticsearch
