@@ -5,8 +5,10 @@ services:
     build: proxy/
     depends_on:
       - crowi
+      - owncloud
     links:
       - crowi
+      - owncloud
     ports:
       - 80:80
       - 443:443
@@ -41,3 +43,22 @@ services:
         || bin/plugin install analysis-kuromoji
         && exec /docker-entrypoint.sh $$0 $$@
     command: elasticsearch
+  owncloud:
+    image: owncloud
+    depends_on:
+      - db-owncloud
+    links:
+      - db-owncloud:db
+    ports:
+      - 5001:80
+    volumes:
+      - ~/szm-dev/owncloud:/var/www/html
+  db-owncloud:
+    image: sizuma/mysql-jp:5.6
+    environment:
+      MYSQL_DATABASE: owncloud
+      MYSQL_USER: owncloud
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    volumes:
+      - ~/szm-dev/owncloud-db:/var/lib/mysql
